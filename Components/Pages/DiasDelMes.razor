@@ -1,0 +1,153 @@
+@page "/dias-del-mes"
+@rendermode InteractiveServer
+
+<PageTitle>Días del mes</PageTitle>
+
+<h1>Conocer los días del mes</h1>
+
+<div class="conversion-form">
+    <div class="field-row">
+        <label for="mes">Mes</label>
+        <input id="mes"
+               type="number"
+               min="1"
+               max="12"
+               @bind="mes"
+               @bind:event="oninput"
+               placeholder="1" />
+    </div>
+
+    <div class="field-row">
+        <label for="anio">Año</label>
+        <input id="anio"
+               type="number"
+               min="1"
+               @bind="anio"
+               @bind:event="oninput"
+               placeholder="2000" />
+    </div>
+
+    <div class="button-row">
+        <button class="btn-calcular" @onclick="Calcular">Calcular</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(resultado))
+    {
+        <p class="resultado">@resultado</p>
+    }
+</div>
+
+@code {
+    private int mes = 0;
+    private int anio = 0;
+    private string resultado = "";
+
+    private void Calcular()
+    {
+        if (mes < 1 || mes > 12)
+        {
+            resultado = "Ingrese un mes válido (1-12).";
+            return;
+        }
+        if (anio < 1)
+        {
+            resultado = "Ingrese un año válido.";
+            return;
+        }
+
+        int dias = ObtenerDias(mes, anio);
+        resultado = $"El mes {mes} del año {anio} tiene {dias} días";
+    }
+
+    private int ObtenerDias(int mes, int anio)
+    {
+        // Meses con 31 días
+        if (mes == 1 || mes == 3 || mes == 5 || mes == 7 ||
+            mes == 8 || mes == 10 || mes == 12)
+        {
+            return 31;
+        }
+
+        // Meses con 30 días
+        if (mes == 4 || mes == 6 || mes == 9 || mes == 11)
+        {
+            return 30;
+        }
+
+        // Febrero
+        return EsBisiesto(anio) ? 29 : 28;
+    }
+
+    private bool EsBisiesto(int anio)
+    {
+      
+        return (anio % 400 == 0) || (anio % 4 == 0 && anio % 100 != 0);
+    }
+}
+
+<style>
+    h1 {
+        font-size: 1.8rem;
+        font-weight: 400;
+        margin-bottom: 1.5rem;
+        color: #212529;
+    }
+
+    .conversion-form {
+        max-width: 700px;
+        padding: 1rem 0;
+    }
+
+    .field-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        gap: 1rem;
+    }
+
+    .field-row label {
+        width: 50px;
+        font-size: 0.95rem;
+        color: #333;
+    }
+
+    .field-row input {
+        flex: 1;
+        padding: 0.45rem 0.75rem;
+        font-size: 0.95rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        color: #495057;
+        background-color: #fff;
+    }
+
+    .button-row {
+        margin: 0.75rem 0 1.5rem 0;
+    }
+
+    .btn-calcular {
+        background-color: #0d6efd;
+        color: #fff;
+        border: none;
+        padding: 0.5rem 1.25rem;
+        font-size: 0.95rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+
+    .btn-calcular:hover {
+        background-color: #0b5ed7;
+    }
+
+    .btn-calcular:active {
+        background-color: #0a58ca;
+    }
+
+    .resultado {
+        font-size: 1.4rem;
+        font-weight: 500;
+        color: #212529;
+        margin-top: 0.5rem;
+    }
+</style>

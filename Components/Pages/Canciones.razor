@@ -1,0 +1,270 @@
+@page "/canciones"
+@rendermode InteractiveServer
+
+<PageTitle>Lista de canciones</PageTitle>
+
+<h1>Lista de canciones</h1>
+
+<div class="form-container">
+
+    @* Agregar / Editar *@
+    <div class="field-row">
+        <input type="text"
+               @bind="inputTitulo"
+               @bind:event="oninput"
+               @onkeydown="TeclaPresionada"
+               placeholder="@(modoEdicion ? "Editar título..." : "Nuevo título de canción...")" />
+
+        @if (modoEdicion)
+        {
+            <button class="btn-guardar" @onclick="GuardarEdicion">Guardar</button>
+            <button class="btn-cancelar" @onclick="CancelarEdicion">Cancelar</button>
+        }
+        else
+        {
+            <button class="btn-agregar" @onclick="Agregar">+ Agregar</button>
+        }
+    </div>
+
+    @* Filtro y orden *@
+    <div class="controles">
+        <input type="text"
+               @bind="filtro"
+               @bind:event="oninput"
+               placeholder="Filtrar canciones..." />
+
+        <button class="btn-orden @(ordenAscendente ? "activo" : "")" @onclick="OrdenarAscendente">A - Z</button>
+        <button class="btn-orden @(!ordenAscendente ? "activo" : "")" @onclick="OrdenarDescendente">Z - A</button>
+
+        @if (!string.IsNullOrEmpty(filtro))
+        {
+            <button class="btn-cancelar" @onclick="LimpiarFiltro">Limpiar filtro</button>
+        }
+    </div>
+
+    @* Lista *@
+    @{
+        var lista = canciones.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(filtro))
+            lista = lista.Where(c => c.Contains(filtro, StringComparison.OrdinalIgnoreCase));
+
+        lista = ordenAscendente
+            ? lista.OrderBy(c => c)
+            : lista.OrderByDescending(c => c);
+
+        var listaFinal = lista.ToList();
+    }
+
+    <p class="total">
+        @listaFinal.Count cancion(es)
+        @if (!string.IsNullOrWhiteSpace(filtro))
+        {
+            <span> - Filtro: "@filtro"</span>
+        }
+    </p>
+
+    @if (listaFinal.Count == 0)
+    {
+        <p class="vacio">No se encontraron canciones.</p>
+    }
+    else
+    {
+        <ul class="lista">
+            @foreach (var cancion in listaFinal)
+            {
+                <li class="item @(cancionEditando == cancion ? "editando" : "")">
+                    <span class="texto">@cancion</span>
+                    <div class="acciones">
+                        <button class="btn-editar" @onclick="() => IniciarEdicion(cancion)">Editar</button>
+                        <button class="btn-eliminar" @onclick="() => Eliminar(cancion)">Eliminar</button>
+                    </div>
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    private List<string> canciones = new()
+    {
+        "Bohemian Rhapsody",
+        "Hotel California",
+        "Summer of 69",
+        "Smells Like Teen Spirit",
+        "Summer Nights",
+        "Wonderwall"
+    };
+
+    private string inputTitulo     = "";
+    private string filtro          = "";
+    private bool ordenAscendente   = true;
+    private bool modoEdicion       = false;
+    private string cancionEditando = "";
+
+    private void Agregar()
+    {
+        string texto = inputTitulo.Trim();
+        if (!string.IsNullOrEmpty(texto) && !canciones.Contains(texto))
+        {
+            canciones.Add(texto);
+            inputTitulo = "";
+        }
+    }
+
+    private void Eliminar(string cancion)
+    {
+        canciones.Remove(cancion);
+        if (cancionEditando == cancion)
+            CancelarEdicion();
+    }
+
+    private void IniciarEdicion(string cancion)
+    {
+        cancionEditando = cancion;
+        inputTitulo     = cancion;
+        modoEdicion     = true;
+    }
+
+    private void GuardarEdicion()
+    {
+        string nuevo = inputTitulo.Trim();
+        if (!string.IsNullOrEmpty(nuevo))
+        {
+            int idx = canciones.IndexOf(cancionEditando);
+            if (idx >= 0)
+                canciones[idx] = nuevo;
+        }
+        CancelarEdicion();
+    }
+
+    private void CancelarEdicion()
+    {
+        modoEdicion     = false;
+        cancionEditando = "";
+        inputTitulo     = "";
+    }
+
+    private void LimpiarFiltro()      => filtro = "";
+    private void OrdenarAscendente()  => ordenAscendente = true;
+    private void OrdenarDescendente() => ordenAscendente = false;
+
+    private void TeclaPresionada(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            if (modoEdicion) GuardarEdicion();
+            else Agregar();
+        }
+        if (e.Key == "Escape") CancelarEdicion();
+    }
+}
+
+<style>
+    h1 {
+        font-size: 1.8rem;
+        font-weight: 400;
+        margin-bottom: 1.5rem;
+        color: #212529;
+    }
+
+    .form-container {
+        max-width: 700px;
+        padding: 1rem 0;
+    }
+
+    .field-row, .controles {
+        display: flex;
+        gap: 0.6rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .field-row input, .controles input {
+        flex: 1;
+        min-width: 180px;
+        padding: 0.45rem 0.75rem;
+        font-size: 0.95rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        color: #495057;
+    }
+
+    .field-row input:focus, .controles input:focus {
+        outline: none;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 2px rgba(13,110,253,0.2);
+    }
+
+    button {
+        padding: 0.45rem 1rem;
+        font-size: 0.9rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.15s;
+        white-space: nowrap;
+    }
+
+    .btn-agregar       { background-color: #0d6efd; color: #fff; }
+    .btn-agregar:hover { background-color: #0b5ed7; }
+
+    .btn-guardar       { background-color: #198754; color: #fff; }
+    .btn-guardar:hover { background-color: #157347; }
+
+    .btn-cancelar       { background-color: #6c757d; color: #fff; }
+    .btn-cancelar:hover { background-color: #5c636a; }
+
+    .btn-editar       { background-color: #ffc107; color: #212529; }
+    .btn-editar:hover { background-color: #e0a800; }
+
+    .btn-eliminar       { background-color: #dc3545; color: #fff; }
+    .btn-eliminar:hover { background-color: #bb2d3b; }
+
+    .btn-orden {
+        background-color: #e9ecef;
+        color: #495057;
+        border: 1px solid #ced4da;
+    }
+    .btn-orden:hover  { background-color: #dee2e6; }
+    .btn-orden.activo { background-color: #0d6efd; color: #fff; border-color: #0d6efd; }
+
+    .total {
+        font-size: 0.88rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .lista {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.55rem 0.75rem;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 0.95rem;
+        color: #495057;
+    }
+
+    .item:nth-child(odd) { background-color: #f3f4f6; }
+
+    .item.editando {
+        background-color: #fff3cd !important;
+        border-left: 3px solid #ffc107;
+    }
+
+    .texto    { flex: 1; }
+    .acciones { display: flex; gap: 0.4rem; }
+
+    .vacio {
+        color: #6c757d;
+        font-style: italic;
+        margin-top: 1rem;
+    }
+</style>

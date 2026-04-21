@@ -1,0 +1,249 @@
+@page "/registro-productos"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Registro de productos</PageTitle>
+
+<h1>Registro de productos</h1>
+
+@if (!string.IsNullOrEmpty(mensajeError))
+{
+    <p style="color: red;">@mensajeError</p>
+}
+
+<EditForm Model="elProducto" OnValidSubmit="GuardarDatos">
+    <DataAnnotationsValidator />
+
+    <div>
+        <label>No. de inventario</label>
+        <br />
+        <InputNumber class="campo" @bind-Value="elProducto.NoInventario" />
+        <ValidationMessage For="@(() => elProducto.NoInventario)" />
+    </div>
+
+    <br />
+
+    <div>
+        <label>Descripcion</label>
+        <br />
+        <InputText class="campo" placeholder="Escribe la descripcion del producto" @bind-Value="elProducto.Descripcion" />
+        <ValidationMessage For="@(() => elProducto.Descripcion)" />
+    </div>
+
+    <br />
+
+    <div>
+        <label>Departamento</label>
+        <br />
+        <InputRadioGroup @bind-Value="elProducto.Departamento">
+            <InputRadio Value="@("Frutas")" /> Frutas
+            <InputRadio Value="@("Verduras")" /> Verduras
+            <InputRadio Value="@("Lacteos")" /> Lacteos
+        </InputRadioGroup>
+    </div>
+
+    <br />
+
+    <button class="btn-verde" type="submit">Guardar datos</button>
+    <button class="btn-verde" type="button" @onclick="MostrarListaCompleta">Lista completa</button>
+    <button class="btn-verde" type="button" @onclick="MostrarFrutas">Lista de frutas</button>
+    <button class="btn-verde" type="button" @onclick="MostrarVerduras">Lista de verduras</button>
+    <button class="btn-verde" type="button" @onclick="MostrarLacteos">Lista de lacteos</button>
+
+</EditForm>
+
+<br />
+
+@if (mostrarLista && listaFiltrada.Count > 0)
+{
+    <table>
+        <thead>
+            <tr>
+                <th>No. Inventario</th>
+                <th>Descripcion</th>
+                <th>Departamento</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in listaFiltrada)
+            {
+                <tr>
+                    <td>@p.NoInventario</td>
+                    <td>@p.Descripcion</td>
+                    <td>@p.Departamento</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <br />
+    <button class="btn-verde" @onclick="CerrarLista">Cerrar lista</button>
+}
+
+@if (mostrarLista && listaFiltrada.Count == 0)
+{
+    <p>No hay productos en esta categoria.</p>
+    <button class="btn-verde" @onclick="CerrarLista">Cerrar lista</button>
+}
+
+@code {
+    private Producto elProducto = new Producto();
+    private List<Producto> listaProductos = new List<Producto>();
+    private List<Producto> listaFiltrada = new List<Producto>();
+    private bool mostrarLista = false;
+    private string mensajeError = "";
+
+    private void GuardarDatos()
+    {
+        mensajeError = "";
+
+        bool existe = false;
+        foreach (var p in listaProductos)
+        {
+            if (p.NoInventario == elProducto.NoInventario)
+            {
+                existe = true;
+            }
+        }
+
+        if (existe)
+        {
+            mensajeError = "Error: El numero de inventario " + elProducto.NoInventario + " ya existe. No se guardo el registro.";
+            return;
+        }
+
+        Producto nuevo = new Producto();
+        nuevo.NoInventario = elProducto.NoInventario;
+        nuevo.Descripcion = elProducto.Descripcion;
+        nuevo.Departamento = elProducto.Departamento;
+
+        listaProductos.Add(nuevo);
+
+        elProducto = new Producto();
+        mostrarLista = false;
+    }
+
+    private void MostrarListaCompleta()
+    {
+        listaFiltrada = new List<Producto>(listaProductos);
+        mostrarLista = true;
+    }
+
+    private void MostrarFrutas()
+    {
+        listaFiltrada = new List<Producto>();
+        foreach (var p in listaProductos)
+        {
+            if (p.Departamento == "Frutas")
+                listaFiltrada.Add(p);
+        }
+        mostrarLista = true;
+    }
+
+    private void MostrarVerduras()
+    {
+        listaFiltrada = new List<Producto>();
+        foreach (var p in listaProductos)
+        {
+            if (p.Departamento == "Verduras")
+                listaFiltrada.Add(p);
+        }
+        mostrarLista = true;
+    }
+
+    private void MostrarLacteos()
+    {
+        listaFiltrada = new List<Producto>();
+        foreach (var p in listaProductos)
+        {
+            if (p.Departamento == "Lacteos")
+                listaFiltrada.Add(p);
+        }
+        mostrarLista = true;
+    }
+
+    private void CerrarLista()
+    {
+        mostrarLista = false;
+    }
+
+    // Clase Producto definida dentro del mismo archivo
+    public class Producto
+    {
+        [Required(ErrorMessage = "El numero de inventario es obligatorio")]
+        public int NoInventario { get; set; }
+
+        [Required(ErrorMessage = "La descripcion es obligatoria")]
+        public string? Descripcion { get; set; }
+
+        public string Departamento { get; set; } = "Frutas";
+    }
+}
+
+<style>
+    h1 {
+        font-size: 1.5rem;
+        font-weight: 400;
+        margin-bottom: 1rem;
+        color: #212529;
+    }
+
+    label {
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .campo {
+        width: 550px;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.95rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        color: #495057;
+    }
+
+    .btn-verde {
+        background-color: #198754;
+        color: white;
+        border: none;
+        padding: 0.45rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-right: 4px;
+    }
+
+        .btn-verde:hover {
+            background-color: #157347;
+        }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 0.5rem;
+    }
+
+    th {
+        text-align: left;
+        padding: 0.5rem 1rem;
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #212529;
+    }
+
+    td {
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid #f0f0f0;
+        color: #495057;
+    }
+
+    tr:nth-child(odd) td {
+        background-color: #f3f4f6;
+    }
+
+    .validation-message {
+        color: red;
+        font-size: 0.85rem;
+    }
+</style>

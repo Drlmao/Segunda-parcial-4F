@@ -1,0 +1,135 @@
+@page "/cambio-moneda"
+@rendermode InteractiveServer
+
+<PageTitle>Cambio de Moneda</PageTitle>
+
+<h1>Cambio de moneda</h1>
+
+<div class="conversion-form">
+    <div class="field-row">
+        <label for="pesos">Pesos</label>
+        <input id="pesos"
+               type="number"
+               min="0"
+               step="1"
+               @bind="cantidadPesos"
+               @bind:event="oninput"
+               placeholder="0" />
+    </div>
+
+    <div class="button-row">
+        <button class="btn-convertir" @onclick="Convertir">Convertir</button>
+    </div>
+
+    <div class="field-row">
+        <label for="dolares">Dólares</label>
+        <input id="dolares" type="text" readonly value="@resultadoDolares" />
+    </div>
+
+    <div class="field-row">
+        <label for="euros">Euros</label>
+        <input id="euros" type="text" readonly value="@resultadoEuros" />
+    </div>
+
+    <div class="field-row">
+        <label for="libras">Libras</label>
+        <input id="libras" type="text" readonly value="@resultadoLibras" />
+    </div>
+</div>
+
+@code {
+  
+    private const decimal TipoCambioDolar = 17.15m;   // 1 USD = 17.15 MXN
+    private const decimal TipoCambioEuro  = 18.60m;   // 1 EUR = 18.60 MXN
+    private const decimal TipoCambioLibra = 21.80m;   // 1 GBP = 21.80 MXN
+
+    private decimal cantidadPesos = 0;
+
+    private string resultadoDolares = "0";
+    private string resultadoEuros   = "0";
+    private string resultadoLibras  = "0";
+
+    private void Convertir()
+    {
+        if (cantidadPesos < 0)
+        {
+            resultadoDolares = "Ingrese un valor positivo";
+            resultadoEuros   = "Ingrese un valor positivo";
+            resultadoLibras  = "Ingrese un valor positivo";
+            return;
+        }
+
+        decimal dolares = cantidadPesos / TipoCambioDolar;
+        decimal euros   = cantidadPesos / TipoCambioEuro;
+        decimal libras  = cantidadPesos / TipoCambioLibra;
+
+        resultadoDolares = dolares.ToString("F2");
+        resultadoEuros   = euros.ToString("F2");
+        resultadoLibras  = libras.ToString("F2");
+    }
+}
+
+<style>
+    h1 {
+        font-size: 1.8rem;
+        font-weight: 400;
+        margin-bottom: 1.5rem;
+        color: #212529;
+    }
+
+    .conversion-form {
+        max-width: 700px;
+        padding: 1rem 0;
+    }
+
+    .field-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        gap: 1rem;
+    }
+
+    .field-row label {
+        width: 80px;
+        font-size: 0.95rem;
+        color: #333;
+    }
+
+    .field-row input {
+        flex: 1;
+        padding: 0.45rem 0.75rem;
+        font-size: 0.95rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        color: #495057;
+        background-color: #fff;
+    }
+
+    .field-row input[readonly] {
+        background-color: #e9ecef;
+        cursor: default;
+    }
+
+    .button-row {
+        margin: 0.75rem 0 1rem 0;
+    }
+
+    .btn-convertir {
+        background-color: #0d6efd;
+        color: #fff;
+        border: none;
+        padding: 0.5rem 1.25rem;
+        font-size: 0.95rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+
+    .btn-convertir:hover {
+        background-color: #0b5ed7;
+    }
+
+    .btn-convertir:active {
+        background-color: #0a58ca;
+    }
+</style>

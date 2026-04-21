@@ -1,0 +1,152 @@
+@page "/lista-numeros"
+@rendermode InteractiveServer
+
+<PageTitle>Lista de números</PageTitle>
+
+<h1>Listas de numeros</h1>
+
+<div class="form-container">
+    <div class="field-row">
+        <label for="num1">Número 1</label>
+        <input id="num1" type="number" @bind="numero1" @bind:event="oninput" />
+    </div>
+
+    <div class="field-row">
+        <label for="num2">Número 2</label>
+        <input id="num2" type="number" @bind="numero2" @bind:event="oninput" />
+    </div>
+
+    <div class="button-row">
+        <button class="btn-calcular" @onclick="Calcular">Calcular</button>
+    </div>
+
+    @if (calculado)
+    {
+        <div class="listas">
+            <div class="lista-col">
+                <h3>Pares</h3>
+                @foreach (var n in pares)
+                {
+                    <div class="numero-item">@n</div>
+                }
+            </div>
+            <div class="lista-col">
+                <h3>Impares</h3>
+                @foreach (var n in impares)
+                {
+                    <div class="numero-item">@n</div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private int numero1 = 0;
+    private int numero2 = 0;
+    private List<int> pares   = new();
+    private List<int> impares = new();
+    private bool calculado = false;
+
+    private void Calcular()
+    {
+        pares.Clear();
+        impares.Clear();
+
+        int inicio = Math.Min(numero1, numero2);
+        int fin    = Math.Max(numero1, numero2);
+
+        for (int i = inicio; i <= fin; i++)
+        {
+            if (i % 2 == 0)
+                pares.Add(i);
+            else
+                impares.Add(i);
+        }
+
+        calculado = true;
+    }
+}
+
+<style>
+    h1 {
+        font-size: 1.8rem;
+        font-weight: 400;
+        margin-bottom: 1.5rem;
+        color: #212529;
+    }
+
+    .form-container {
+        max-width: 900px;
+        padding: 1rem 0;
+    }
+
+    .field-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        gap: 1rem;
+    }
+
+    .field-row label {
+        width: 90px;
+        font-size: 0.95rem;
+        color: #333;
+    }
+
+    .field-row input {
+        flex: 1;
+        padding: 0.45rem 0.75rem;
+        font-size: 0.95rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        color: #495057;
+        background-color: #fff;
+    }
+
+    .button-row {
+        margin: 0.75rem 0 1.5rem 0;
+    }
+
+    .btn-calcular {
+        background-color: #0d6efd;
+        color: #fff;
+        border: none;
+        padding: 0.5rem 1.25rem;
+        font-size: 0.95rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+
+    .btn-calcular:hover { background-color: #0b5ed7; }
+    .btn-calcular:active { background-color: #0a58ca; }
+
+    .listas {
+        display: flex;
+        gap: 2rem;
+        margin-top: 1rem;
+    }
+
+    .lista-col {
+        flex: 1;
+    }
+
+    .lista-col h3 {
+        font-size: 1.4rem;
+        font-weight: 400;
+        margin-bottom: 0.75rem;
+        color: #212529;
+    }
+
+    .numero-item {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.95rem;
+        color: #495057;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .numero-item:nth-child(odd) {
+        background-color: #f3f4f6;
+    }
+</style>
